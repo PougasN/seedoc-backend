@@ -7,6 +7,7 @@ import org.hl7.fhir.instance.model.api.IBaseResource;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.converter.HttpMessageConverter;
+import org.springframework.web.servlet.config.annotation.CorsRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
 import java.util.List;
@@ -27,6 +28,18 @@ public class FhirConfig implements WebMvcConfigurer {
     @Bean
     public HttpMessageConverter<IBaseResource> fhirHttpMessageConverter(FhirContext fhirContext) {
         return new FhirHttpMessageConverter(fhirContext);
+    }
+
+    @Bean
+    public WebMvcConfigurer corsConfigurer() {
+        return new WebMvcConfigurer() {
+            @Override
+            public void addCorsMappings(CorsRegistry registry) {
+                registry.addMapping("/**")
+                        .allowedOrigins("http://localhost:3000")
+                        .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS");
+            }
+        };
     }
 
     @Override
