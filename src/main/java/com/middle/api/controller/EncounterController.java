@@ -34,6 +34,16 @@ public class EncounterController {
         return ResponseEntity.status(HttpStatus.CREATED).body(encounterString);
     }
 
+    // PUT update Encounter
+    @PutMapping(value = "/encounter/{id}", consumes = "application/fhir+json")
+    public ResponseEntity<String> updateEncounter(@PathVariable String id, @RequestBody Encounter encounter) {
+        encounter.setId(id);
+        MethodOutcome outcome = fhirClient.update().resource(encounter).execute();
+        Encounter updatedEncounter = fhirClient.read().resource(Encounter.class).withId(id).execute();
+        String encounterString = fhirContext.newJsonParser().setPrettyPrint(true).encodeResourceToString(updatedEncounter);
+        return ResponseEntity.ok(encounterString);
+    }
+
     // Get an encounter by ID
     @GetMapping(value = "/encounter/{id}", produces = "application/fhir+json")
     public ResponseEntity<String> getEncounterById(@PathVariable String id) {
