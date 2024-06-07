@@ -72,4 +72,26 @@ public class PatientController {
         String bundleJson = fhirContext.newJsonParser().setPrettyPrint(true).encodeResourceToString(bundle);
         return ResponseEntity.ok(bundleJson);
     }
+
+    // DELETE Patient by ID
+    @DeleteMapping("/patient/{id}")
+    public ResponseEntity<String> deletePatient(@PathVariable String id) {
+        try {
+            fhirClient.delete().resourceById(new IdType("Patient", id)).execute();
+            return ResponseEntity.status(HttpStatus.NO_CONTENT).body("Patient resource deleted successfully");
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error deleting patient resource: " + e.getMessage());
+        }
+    }
+
+    // DELETE All Patients
+    @DeleteMapping("/patients")
+    public ResponseEntity<String> deleteAllPatients() {
+        Bundle bundle = fhirClient.search().forResource(Patient.class).returnBundle(Bundle.class).execute();
+        for (Bundle.BundleEntryComponent entry : bundle.getEntry()) {
+            Patient patient = (Patient) entry.getResource();
+            fhirClient.delete().resourceById(new IdType("Patient", patient.getIdElement().getIdPart())).execute();
+        }
+        return ResponseEntity.status(HttpStatus.NO_CONTENT).body("All patients deleted successfully");
+    }
 }

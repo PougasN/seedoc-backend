@@ -3,7 +3,9 @@ package com.middle.api.controller;
 import ca.uhn.fhir.context.FhirContext;
 import ca.uhn.fhir.rest.api.MethodOutcome;
 import ca.uhn.fhir.rest.client.api.IGenericClient;
+import org.hl7.fhir.instance.model.api.IBaseResource;
 import org.hl7.fhir.instance.model.api.IIdType;
+import org.hl7.fhir.r4.model.Bundle;
 import org.hl7.fhir.r4.model.Encounter;
 import org.hl7.fhir.r4.model.IdType;
 import org.hl7.fhir.r4.model.Media;
@@ -11,6 +13,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
+import java.util.stream.Collectors;
 
 @RestController
 public class MediaController {
@@ -20,6 +25,16 @@ public class MediaController {
 
     @Autowired
     private FhirContext fhirContext;
+
+    // GET all Media resources
+    @GetMapping("/media")
+    public ResponseEntity<String> getAllMedia() {
+        Bundle bundle = fhirClient.search().forResource(Media.class).returnBundle(Bundle.class).execute();
+        String mediaString = fhirContext.newJsonParser().setPrettyPrint(true).encodeResourceToString(bundle);
+        return ResponseEntity.ok(mediaString);
+    }
+
+
 
     // POST new Media
     @PostMapping(value = "/media", consumes = "application/fhir+json")
@@ -54,5 +69,16 @@ public class MediaController {
     public ResponseEntity<String> deleteMedia(@PathVariable String id) {
         fhirClient.delete().resourceById(new IdType("Media", id)).execute();
         return ResponseEntity.status(HttpStatus.NO_CONTENT).body("Media resource deleted successfully");
+    }
+
+    // DELETE All Media
+    @DeleteMapping("/media")
+    public ResponseEntity<String> deleteAllMedia() {
+        Bundle mediaBundle = fhirClient.search().forResource(Media.class).returnBundle(Bundle.class).execute();
+        for (Bundle.BundleEntryComponent entry : mediaBundle.getEntry()) {
+            Media media = (Media) entry.getResource();
+            fhirClient.delete().resourceById(new IdType("Media", media.getIdElement().getIdPart())).execute();
+        }
+        return ResponseEntity.status(HttpStatus.NO_CONTENT).body("All media resources deleted successfully");
     }
 }
