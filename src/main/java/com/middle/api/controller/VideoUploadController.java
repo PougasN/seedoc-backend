@@ -5,6 +5,7 @@ import ca.uhn.fhir.rest.api.MethodOutcome;
 import ca.uhn.fhir.rest.client.api.IGenericClient;
 import com.middle.api.service.MinioService;
 import io.minio.errors.MinioException;
+import org.hl7.fhir.instance.model.api.IIdType;
 import org.hl7.fhir.r4.model.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -59,6 +60,27 @@ public class VideoUploadController {
 
             MethodOutcome outcome = client.create().resource(media).execute();
 
+            IIdType mediaId = outcome.getId();
+            System.out.println("mediaId = " + mediaId.getIdPart());
+
+            // Read the encounter resource
+            Encounter encounter = client.read().resource(Encounter.class).withId(encounterId).execute();
+
+            // Add extensions to the encounter resource
+            Extension videoUploadedExtension = new Extension("http://example.com/fhir/StructureDefinition/videoUploaded", new BooleanType(true));
+            encounter.addExtension(videoUploadedExtension);
+
+            Extension mediaIdExt = new Extension("http://example.com/fhir/StructureDefinition/mediaId", new Reference("Media/" + mediaId.getIdPart()));
+            encounter.addExtension(mediaIdExt);
+
+            System.out.println("mediaIdExt = " + mediaIdExt.toString());
+
+            // Update the encounter status to INPROGRESS
+            encounter.setStatus(Encounter.EncounterStatus.INPROGRESS);
+
+            // Update the encounter resource
+            MethodOutcome encounterOutcome = client.update().resource(encounter).execute();
+
             return ResponseEntity.ok(fhirContext.newJsonParser().encodeResourceToString(outcome.getResource()));
         } catch (MinioException | IOException | InvalidKeyException | NoSuchAlgorithmException e) {
             e.printStackTrace();
@@ -68,4 +90,5 @@ public class VideoUploadController {
             return ResponseEntity.status(500).body("An unexpected error occurred: " + e.getMessage());
         }
     }
+
 }

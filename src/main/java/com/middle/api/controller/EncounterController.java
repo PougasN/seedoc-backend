@@ -3,6 +3,7 @@ package com.middle.api.controller;
 import ca.uhn.fhir.context.FhirContext;
 import ca.uhn.fhir.rest.api.MethodOutcome;
 import ca.uhn.fhir.rest.client.api.IGenericClient;
+import com.middle.api.service.EncounterService;
 import org.hl7.fhir.r4.model.Bundle;
 import org.hl7.fhir.r4.model.Encounter;
 import org.hl7.fhir.r4.model.IdType;
@@ -12,6 +13,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 @RestController
@@ -22,6 +24,9 @@ public class EncounterController {
 
     @Autowired
     private FhirContext fhirContext;
+
+    @Autowired
+    private EncounterService encounterService;
 
 
     // POST new Encounter
@@ -92,5 +97,13 @@ public class EncounterController {
 
         String encountersString = fhirContext.newJsonParser().setPrettyPrint(true).encodeResourceToString(bundle);
         return ResponseEntity.ok(encountersString);
+    }
+
+    @PutMapping("/encounter/{encounterId}/status")
+    public Encounter updateEncounterStatus(
+            @PathVariable String encounterId,
+            @RequestBody Map<String, String> requestBody) {
+        String status = requestBody.get("status");
+        return encounterService.updateEncounterStatus(encounterId, status);
     }
 }

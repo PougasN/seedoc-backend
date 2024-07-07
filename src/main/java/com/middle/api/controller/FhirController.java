@@ -30,6 +30,14 @@ public class FhirController {
     // DELETE All Resources (Patients, Encounters, Media)
     @DeleteMapping("/all-resources")
     public ResponseEntity<String> deleteAllResources() {
+
+        // Delete all Diagnostic Reports first
+        Bundle diagnosticBundle = fhirClient.search().forResource(DiagnosticReport.class).returnBundle(Bundle.class).execute();
+        for (Bundle.BundleEntryComponent entry : diagnosticBundle.getEntry()) {
+            DiagnosticReport diagnosticReport = (DiagnosticReport) entry.getResource();
+            fhirClient.delete().resourceById(new IdType("DiagnosticReport", diagnosticReport.getIdElement().getIdPart())).execute();
+        }
+
         // Delete all Media first
         Bundle mediaBundle = fhirClient.search().forResource(Media.class).returnBundle(Bundle.class).execute();
         for (Bundle.BundleEntryComponent entry : mediaBundle.getEntry()) {
