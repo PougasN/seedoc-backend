@@ -2,7 +2,7 @@ package com.middle.api.config;
 
 import ca.uhn.fhir.context.FhirContext;
 import ca.uhn.fhir.rest.client.api.IGenericClient;
-import com.middle.api.FhirHttpMessageConverter;
+import com.middle.api.converter.FhirHttpMessageConverter;
 import org.hl7.fhir.instance.model.api.IBaseResource;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;

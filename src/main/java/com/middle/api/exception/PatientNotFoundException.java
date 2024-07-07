@@ -1,4 +1,4 @@
-package com.middle.api.ExceptionHandling;
+package com.middle.api.exception;
 
 public class PatientNotFoundException extends RuntimeException {
     public PatientNotFoundException(String id) {
