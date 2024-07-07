@@ -2,6 +2,7 @@ package com.middle.api.converter;
 
 import ca.uhn.fhir.context.FhirContext;
 import ca.uhn.fhir.parser.IParser;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.http.HttpInputMessage;
 import org.springframework.http.HttpOutputMessage;
 import org.springframework.http.MediaType;
@@ -23,12 +24,13 @@ public class FhirHttpMessageConverter extends AbstractHttpMessageConverter<IBase
     }
 
     @Override
-    protected boolean supports(Class<?> clazz) {
+    protected boolean supports(@NotNull Class<?> clazz) {
         return IBaseResource.class.isAssignableFrom(clazz);
     }
 
+    @NotNull
     @Override
-    protected IBaseResource readInternal(Class<? extends IBaseResource> clazz, HttpInputMessage inputMessage) throws IOException {
+    protected IBaseResource readInternal(@NotNull Class<? extends IBaseResource> clazz, @NotNull HttpInputMessage inputMessage) throws IOException {
         IParser parser = fhirContext.newJsonParser();
         try (InputStreamReader reader = new InputStreamReader(inputMessage.getBody(), StandardCharsets.UTF_8)) {
             return parser.parseResource(clazz, reader);
@@ -36,7 +38,7 @@ public class FhirHttpMessageConverter extends AbstractHttpMessageConverter<IBase
     }
 
     @Override
-    protected void writeInternal(IBaseResource resource, HttpOutputMessage outputMessage) throws IOException {
+    protected void writeInternal(@NotNull IBaseResource resource, HttpOutputMessage outputMessage) throws IOException {
         IParser parser = fhirContext.newJsonParser().setPrettyPrint(true);
         try (OutputStreamWriter writer = new OutputStreamWriter(outputMessage.getBody(), StandardCharsets.UTF_8)) {
             parser.encodeResourceToWriter(resource, writer);

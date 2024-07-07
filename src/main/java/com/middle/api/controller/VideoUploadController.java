@@ -73,13 +73,11 @@ public class VideoUploadController {
             Extension mediaIdExt = new Extension("http://example.com/fhir/StructureDefinition/mediaId", new Reference("Media/" + mediaId.getIdPart()));
             encounter.addExtension(mediaIdExt);
 
-            System.out.println("mediaIdExt = " + mediaIdExt.toString());
-
-            // Update the encounter status to INPROGRESS
+            // Update the encounter status to IN-PROGRESS
             encounter.setStatus(Encounter.EncounterStatus.INPROGRESS);
 
             // Update the encounter resource
-            MethodOutcome encounterOutcome = client.update().resource(encounter).execute();
+            client.update().resource(encounter).execute();
 
             return ResponseEntity.ok(fhirContext.newJsonParser().encodeResourceToString(outcome.getResource()));
         } catch (MinioException | IOException | InvalidKeyException | NoSuchAlgorithmException e) {
@@ -90,5 +88,4 @@ public class VideoUploadController {
             return ResponseEntity.status(500).body("An unexpected error occurred: " + e.getMessage());
         }
     }
-
 }

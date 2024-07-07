@@ -52,16 +52,10 @@ public class PatientController {
     // POST a new Patient
     @PostMapping(value = "/patient", consumes = "application/fhir+json")
     public ResponseEntity<String> createPatient(@RequestBody Patient patient) {
-        // Send the Patient to the FHIR server and capture the response
         MethodOutcome outcome = fhirClient.create().resource(patient).execute();
-
-        // Extract the ID of the newly created patient
         IdType id = (IdType) outcome.getId();
-
-        // Fetch the created patient to include it in the response body
         Patient createdPatient = fhirClient.read().resource(Patient.class).withId(id.getIdPart()).execute();
         String patientString = fhirContext.newJsonParser().setPrettyPrint(true).encodeResourceToString(createdPatient);
-
         return ResponseEntity.status(HttpStatus.CREATED).body(patientString);
     }
 

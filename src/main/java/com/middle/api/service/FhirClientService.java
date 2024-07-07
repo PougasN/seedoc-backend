@@ -1,5 +1,7 @@
 package com.middle.api.service;
 
+import ca.uhn.fhir.context.FhirContext;
+import ca.uhn.fhir.rest.client.api.IGenericClient;
 import ca.uhn.fhir.rest.gclient.IQuery;
 import com.middle.api.exception.PatientNotFoundException;
 import org.hl7.fhir.instance.model.api.IBaseBundle;
@@ -7,8 +9,6 @@ import org.hl7.fhir.r4.model.Bundle;
 import org.hl7.fhir.r4.model.Patient;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import ca.uhn.fhir.context.FhirContext;
-import ca.uhn.fhir.rest.client.api.IGenericClient;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -16,16 +16,10 @@ import java.util.List;
 @Service
 public class FhirClientService {
 
-    private final IGenericClient fhirClient;
-    private final FhirContext fhirContext;
-
     @Autowired
-    public FhirClientService(IGenericClient fhirClient, FhirContext fhirContext) {
-        this.fhirClient = fhirClient;
-        this.fhirContext = fhirContext;
-    }
-
-
+    private IGenericClient fhirClient;
+    @Autowired
+    private FhirContext fhirContext;
 
     public Patient getPatientById(String id) {
         try {
@@ -59,7 +53,7 @@ public class FhirClientService {
         resultBundle.setTotal(bundle.getTotal());
 
         while (bundle != null && bundle.hasEntry()) {
-            bundle.getEntry().forEach(entry -> resultBundle.addEntry(entry));
+            bundle.getEntry().forEach(resultBundle::addEntry);
             if (bundle.getLink("next") != null) {
                 bundle = fhirClient.loadPage().next(bundle).execute();
             } else {
@@ -68,6 +62,4 @@ public class FhirClientService {
         }
         return resultBundle;
     }
-
-
 }

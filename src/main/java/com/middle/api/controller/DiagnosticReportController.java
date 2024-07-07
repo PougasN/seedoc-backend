@@ -26,32 +26,25 @@ public class DiagnosticReportController {
     @Autowired
     private DiagnosticReportService diagnosticReportService;
 
+    // POST new Diagnostic Report
     @PostMapping(value = "/diagnostic-report", consumes = "application/fhir+json")
     public ResponseEntity<String> createDiagnosticReport(@RequestBody DiagnosticReport diagnosticReport) {
-        // Send the DiagnosticReport to the FHIR server and capture the response
         MethodOutcome outcome = fhirClient.create().resource(diagnosticReport).execute();
-
-        // Extract the ID of the newly created diagnostic report
         IdType id = (IdType) outcome.getId();
-
-        // Fetch the created diagnostic report to include it in the response body
         DiagnosticReport createdReport = fhirClient.read().resource(DiagnosticReport.class).withId(id.getIdPart()).execute();
         String reportString = fhirContext.newJsonParser().setPrettyPrint(true).encodeResourceToString(createdReport);
-
         return ResponseEntity.status(HttpStatus.CREATED).body(reportString);
     }
 
+    // GET a Diagnostic Report with an ID
     @GetMapping("/diagnostic-report/{id}")
     public ResponseEntity<String> getDiagnosticReportById(@PathVariable String id) {
-        // Retrieve the DiagnosticReport from the FHIR server
         DiagnosticReport diagnosticReport = fhirClient.read().resource(DiagnosticReport.class).withId(id).execute();
-
-        // Convert the DiagnosticReport to JSON string
         String diagnosticReportJson = fhirContext.newJsonParser().setPrettyPrint(true).encodeResourceToString(diagnosticReport);
-
         return ResponseEntity.ok(diagnosticReportJson);
     }
 
+    // GET a Diagnostic Report of an Encounter
     @GetMapping("/diagnostic-report")
     public ResponseEntity<DiagnosticReport> getDiagnosticReportByEncounterId(@RequestParam String encounterId) {
         Optional<DiagnosticReport> diagnosticReport = diagnosticReportService.getDiagnosticReportByEncounterId(encounterId);
@@ -59,6 +52,7 @@ public class DiagnosticReportController {
                 .orElseGet(() -> ResponseEntity.notFound().build());
     }
 
+    // GET all Diagnostic Reports
     @GetMapping("/diagnostic-Reports")
     public ResponseEntity<List<DiagnosticReport>> getAllDiagnosticReports() {
         List<DiagnosticReport> diagnosticReports = diagnosticReportService.getAllDiagnosticReports();

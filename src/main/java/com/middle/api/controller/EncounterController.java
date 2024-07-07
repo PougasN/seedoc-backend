@@ -14,7 +14,6 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 @RestController
 public class EncounterController {
@@ -43,13 +42,13 @@ public class EncounterController {
     @PutMapping(value = "/encounter/{id}", consumes = "application/fhir+json")
     public ResponseEntity<String> updateEncounter(@PathVariable String id, @RequestBody Encounter encounter) {
         encounter.setId(id);
-        MethodOutcome outcome = fhirClient.update().resource(encounter).execute();
+        fhirClient.update().resource(encounter).execute();
         Encounter updatedEncounter = fhirClient.read().resource(Encounter.class).withId(id).execute();
         String encounterString = fhirContext.newJsonParser().setPrettyPrint(true).encodeResourceToString(updatedEncounter);
         return ResponseEntity.ok(encounterString);
     }
 
-    // Get an encounter by ID
+    // GET an Encounter by ID
     @GetMapping(value = "/encounter/{id}", produces = "application/fhir+json")
     public ResponseEntity<String> getEncounterById(@PathVariable String id) {
         Encounter encounter = fhirClient.read().resource(Encounter.class).withId(id).execute();
@@ -57,7 +56,7 @@ public class EncounterController {
         return ResponseEntity.ok(encounterString);
     }
 
-    // DELETE encounter by ID
+    // DELETE an Encounter by ID
     @DeleteMapping("/encounter/{id}")
     public ResponseEntity<String> deleteEncounter(@PathVariable String id) {
         try {
@@ -81,7 +80,7 @@ public class EncounterController {
     }
 
 
-    // Get all encounters for a patient
+    // GET all encounters for a patient
     @GetMapping(value = "/patient/{patientId}/encounters", produces = "application/fhir+json")
     public ResponseEntity<String> getAllEncountersForPatient(@PathVariable String patientId) {
         Bundle bundle = fhirClient.search().forResource(Encounter.class)
@@ -93,12 +92,13 @@ public class EncounterController {
                 .map(Bundle.BundleEntryComponent::getResource)
                 .filter(resource -> resource instanceof Encounter)
                 .map(resource -> (Encounter) resource)
-                .collect(Collectors.toList());
+                .toList();
 
         String encountersString = fhirContext.newJsonParser().setPrettyPrint(true).encodeResourceToString(bundle);
         return ResponseEntity.ok(encountersString);
     }
 
+    // PUT update an Encounter status
     @PutMapping("/encounter/{encounterId}/status")
     public Encounter updateEncounterStatus(
             @PathVariable String encounterId,

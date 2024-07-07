@@ -34,21 +34,8 @@ public class MinioService {
         );
     }
 
-    public String getFileUrl(String bucketName, String objectName) throws Exception {
-        return minioClient.getPresignedObjectUrl(
-                GetPresignedObjectUrlArgs.builder()
-                        .method(Method.GET)
-                        .bucket(bucketName)
-                        .object(objectName)
-                        .build()
-        );
-    }
-
     public String uploadVideo(String bucketName, String objectName, InputStream inputStream, long size, String contentType) throws Exception {
         return uploadFile(bucketName, objectName, inputStream, size, contentType);
     }
 
-    public String uploadImage(String bucketName, String objectName, InputStream inputStream, long size, String contentType) throws Exception {
-        return uploadFile(bucketName, objectName, inputStream, size, contentType);
-    }
 }

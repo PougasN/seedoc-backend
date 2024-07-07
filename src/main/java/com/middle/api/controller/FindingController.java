@@ -19,6 +19,7 @@ public class FindingController {
     @Autowired
     private MinioService minioService;
 
+    // POST a new Finding
     @PostMapping("/findings")
     public Finding addFinding(
             @RequestParam("mediaId") Long mediaId,
@@ -28,7 +29,6 @@ public class FindingController {
         try {
             String bucketName = "images-bucket";
             String objectName = mediaId + "/" + frame.getOriginalFilename();
-
             // Upload the image to Minio
             String frameUrl = minioService.uploadFile(
                     bucketName,
@@ -37,19 +37,18 @@ public class FindingController {
                     frame.getSize(),
                     frame.getContentType()
             );
-
             Finding finding = new Finding();
             finding.setMediaId(mediaId);
             finding.setTime(time);
             finding.setComment(comment);
             finding.setFrameUrl(frameUrl);
-
             return findingService.saveFinding(finding);
         } catch (Exception e) {
             throw new IOException("Error occurred while uploading frame: " + e.getMessage(), e);
         }
     }
 
+    // GET all Findings of a video/media
     @GetMapping("/findings/{mediaId}")
     public List<Finding> getFindings(@PathVariable Long mediaId) {
         return findingService.getFindingsByMediaId(mediaId);

@@ -3,19 +3,14 @@ package com.middle.api.controller;
 import ca.uhn.fhir.context.FhirContext;
 import ca.uhn.fhir.rest.api.MethodOutcome;
 import ca.uhn.fhir.rest.client.api.IGenericClient;
-import org.hl7.fhir.instance.model.api.IBaseResource;
 import org.hl7.fhir.instance.model.api.IIdType;
 import org.hl7.fhir.r4.model.Bundle;
-import org.hl7.fhir.r4.model.Encounter;
 import org.hl7.fhir.r4.model.IdType;
 import org.hl7.fhir.r4.model.Media;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
-import java.util.stream.Collectors;
 
 @RestController
 public class MediaController {
@@ -33,8 +28,6 @@ public class MediaController {
         String mediaString = fhirContext.newJsonParser().setPrettyPrint(true).encodeResourceToString(bundle);
         return ResponseEntity.ok(mediaString);
     }
-
-
 
     // POST new Media
     @PostMapping(value = "/media", consumes = "application/fhir+json")
@@ -58,7 +51,7 @@ public class MediaController {
     @PutMapping(value = "/media/{id}", consumes = "application/fhir+json")
     public ResponseEntity<String> updateMedia(@PathVariable String id, @RequestBody Media media) {
         media.setId(id);
-        MethodOutcome outcome = fhirClient.update().resource(media).execute();
+        fhirClient.update().resource(media).execute();
         Media updatedMedia = fhirClient.read().resource(Media.class).withId(id).execute();
         String mediaString = fhirContext.newJsonParser().setPrettyPrint(true).encodeResourceToString(updatedMedia);
         return ResponseEntity.ok(mediaString);
