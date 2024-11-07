@@ -4,6 +4,7 @@ import ca.uhn.fhir.context.FhirContext;
 import ca.uhn.fhir.rest.client.api.IGenericClient;
 import com.middle.api.converter.FhirHttpMessageConverter;
 import org.hl7.fhir.instance.model.api.IBaseResource;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.converter.HttpMessageConverter;
@@ -15,6 +16,17 @@ import java.util.List;
 @Configuration
 public class FhirConfig implements WebMvcConfigurer {
 
+    @Value("${hapi.fhir.server.url}")
+    private String hapiFhirUrl;
+
+    @Value("${react.frontend.url}")
+    private String reactUrl;
+
+    private final String[] ALLOWED_ORIGINS = {
+        reactUrl,
+        "http://localhost:3000"
+    };
+
     @Bean
     public FhirContext fhirContext() {
         return FhirContext.forR4();
@@ -22,7 +34,7 @@ public class FhirConfig implements WebMvcConfigurer {
 
     @Bean
     public IGenericClient fhirClient(FhirContext fhirContext) {
-        return fhirContext.newRestfulGenericClient("http://localhost:8080/fhir");
+        return fhirContext.newRestfulGenericClient(hapiFhirUrl);
     }
 
     @Bean
@@ -36,7 +48,7 @@ public class FhirConfig implements WebMvcConfigurer {
             @Override
             public void addCorsMappings(CorsRegistry registry) {
                 registry.addMapping("/**")
-                        .allowedOrigins("http://localhost:3000")
+                        .allowedOrigins(ALLOWED_ORIGINS)
                         .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS");
             }
         };

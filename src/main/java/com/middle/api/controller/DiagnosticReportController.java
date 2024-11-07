@@ -4,6 +4,7 @@ import ca.uhn.fhir.context.FhirContext;
 import ca.uhn.fhir.rest.api.MethodOutcome;
 import ca.uhn.fhir.rest.client.api.IGenericClient;
 import com.middle.api.service.DiagnosticReportService;
+import org.hl7.fhir.r4.model.Bundle;
 import org.hl7.fhir.r4.model.DiagnosticReport;
 import org.hl7.fhir.r4.model.IdType;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -52,11 +53,12 @@ public class DiagnosticReportController {
                 .orElseGet(() -> ResponseEntity.notFound().build());
     }
 
-    // GET all Diagnostic Reports
-    @GetMapping("/diagnostic-Reports")
-    public ResponseEntity<List<DiagnosticReport>> getAllDiagnosticReports() {
-        List<DiagnosticReport> diagnosticReports = diagnosticReportService.getAllDiagnosticReports();
-        return ResponseEntity.ok(diagnosticReports);
+    // GET All Diagnostic Reports
+    @GetMapping("/diagnostic-reports")
+    public ResponseEntity<String> getAllDiagnosticReports() {
+        Bundle bundle = diagnosticReportService.getAllDiagnosticReports();
+        String bundleJson = fhirContext.newJsonParser().setPrettyPrint(true).encodeResourceToString(bundle);
+        return ResponseEntity.ok(bundleJson);
     }
 }
 

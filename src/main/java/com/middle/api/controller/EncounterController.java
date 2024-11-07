@@ -3,6 +3,8 @@ package com.middle.api.controller;
 import ca.uhn.fhir.context.FhirContext;
 import ca.uhn.fhir.rest.api.MethodOutcome;
 import ca.uhn.fhir.rest.client.api.IGenericClient;
+import ca.uhn.fhir.rest.client.exceptions.FhirClientConnectionException;
+import ca.uhn.fhir.rest.server.exceptions.ResourceNotFoundException;
 import com.middle.api.service.EncounterService;
 import org.hl7.fhir.r4.model.Bundle;
 import org.hl7.fhir.r4.model.Encounter;
@@ -98,12 +100,48 @@ public class EncounterController {
         return ResponseEntity.ok(encountersString);
     }
 
-    // PUT update an Encounter status
+//    // PUT update an Encounter status
+//    @PutMapping("/encounter/{encounterId}/status")
+//    public Encounter updateEncounterStatus(
+//            @PathVariable String encounterId,
+//            @RequestBody Map<String, String> requestBody) {
+//        String status = requestBody.get("status");
+//        return encounterService.updateEncounterStatus(encounterId, status);
+//    }
+
     @PutMapping("/encounter/{encounterId}/status")
-    public Encounter updateEncounterStatus(
+    public ResponseEntity<?> updateEncounterStatus(
             @PathVariable String encounterId,
             @RequestBody Map<String, String> requestBody) {
-        String status = requestBody.get("status");
-        return encounterService.updateEncounterStatus(encounterId, status);
+        try {
+            // Log incoming data
+            System.out.println("Updating encounter with ID: " + encounterId);
+            System.out.println("Requested status: " + requestBody.get("status"));
+
+            // Check if status is provided in the request body
+            String status = requestBody.get("status");
+            if (status == null) {
+                return ResponseEntity.badRequest().body("Status is required");
+            }
+
+            // Attempt to update the encounter status
+            Encounter updatedEncounter = encounterService.updateEncounterStatus(encounterId, status);
+            System.out.println("Encounter updated successfully: " + updatedEncounter);
+            return ResponseEntity.ok(updatedEncounter);
+
+        } catch (ResourceNotFoundException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Encounter not found with ID: " + encounterId);
+        } catch (FhirClientConnectionException e) {
+            return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE).body("FHIR server is unavailable: " + e.getMessage());
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("An unexpected error occurred: " + e.getMessage());
+        }
     }
+
+
+
+
+
+
 }

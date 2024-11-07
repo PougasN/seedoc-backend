@@ -3,14 +3,15 @@ package com.middle.api.service;
 
 import ca.uhn.fhir.context.FhirContext;
 import ca.uhn.fhir.rest.client.api.IGenericClient;
-import org.hl7.fhir.r4.model.DiagnosticReport;
+import ca.uhn.fhir.rest.gclient.IQuery;
+import org.hl7.fhir.instance.model.api.IBaseBundle;
 import org.hl7.fhir.r4.model.Bundle;
+import org.hl7.fhir.r4.model.DiagnosticReport;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
-import java.util.List;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 @Service
 public class DiagnosticReportService {
@@ -18,8 +19,14 @@ public class DiagnosticReportService {
     @Autowired
     private FhirContext fhirContext;
 
+    @Autowired
+    private IGenericClient fhirClient;
+
+    @Value("${hapi.fhir.server.url}")
+    private String hapiFhirUrl;
+
     public Optional<DiagnosticReport> getDiagnosticReportByEncounterId(String encounterId) {
-        IGenericClient client = fhirContext.newRestfulGenericClient("http://localhost:8080/fhir");
+        IGenericClient client = fhirContext.newRestfulGenericClient(hapiFhirUrl);
 
         Bundle bundle = client.search()
                 .forResource(DiagnosticReport.class)
@@ -32,16 +39,22 @@ public class DiagnosticReportService {
                 .findFirst();
     }
 
-    public List<DiagnosticReport> getAllDiagnosticReports() {
-        IGenericClient client = fhirContext.newRestfulGenericClient("http://localhost:8080/fhir");
+    public Bundle getAllDiagnosticReports() {
+        IQuery<IBaseBundle> query = fhirClient.search().forResource(DiagnosticReport.class);
+        Bundle bundle = query.returnBundle(Bundle.class).execute();
 
-        Bundle bundle = client.search()
-                .forResource(DiagnosticReport.class)
-                .returnBundle(Bundle.class)
-                .execute();
+        Bundle resultBundle = new Bundle();
+        resultBundle.setType(Bundle.BundleType.SEARCHSET);
+        resultBundle.setTotal(bundle.getTotal());
 
-        return bundle.getEntry().stream()
-                .map(entry -> (DiagnosticReport) entry.getResource())
-                .collect(Collectors.toList());
+        while (bundle != null && bundle.hasEntry()) {
+            bundle.getEntry().forEach(resultBundle::addEntry);
+            if (bundle.getLink("next") != null) {
+                bundle = fhirClient.loadPage().next(bundle).execute();
+            } else {
+                break;
+            }
+        }
+        return resultBundle;
     }
 }
