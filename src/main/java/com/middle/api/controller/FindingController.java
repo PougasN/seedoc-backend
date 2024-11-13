@@ -174,4 +174,11 @@ public class FindingController {
             return ResponseEntity.status(500).body(null);
         }
     }
+
+    // In FindingController.java
+    @GetMapping("/findings/predefined-comments")
+    public ResponseEntity<List<String>> getPredefinedComments() {
+        return ResponseEntity.ok(findingService.getPredefinedComments());
+    }
+
 }

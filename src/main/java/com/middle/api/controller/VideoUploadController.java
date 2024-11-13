@@ -6,7 +6,6 @@ import ca.uhn.fhir.rest.client.api.IGenericClient;
 import com.middle.api.service.MinioService;
 import io.minio.*;
 import io.minio.errors.MinioException;
-import io.minio.messages.Item;
 import jakarta.servlet.http.HttpServletResponse;
 import org.hl7.fhir.instance.model.api.IIdType;
 import org.hl7.fhir.r4.model.*;
@@ -42,48 +41,6 @@ public class VideoUploadController {
 
     @Value("${hapi.fhir.server.url}")
     private String hapiFhirUrl;
-
-
-    //=========================================================================
-
-    // @Value("${minio.url}")
-    // private String minioInternalUrl;
-
-    // @Value("${minio.external-url}")
-    // private String minioExternalUrl;
-
-    // @PostMapping("/upload")
-    // public ResponseEntity<String> uploadVideo(
-    //         @RequestParam("file") MultipartFile file,
-    //         @RequestParam("patientId") String patientId,
-    //         @RequestParam("encounterId") String encounterId) {
-    //     try {
-    //         String bucketName = "videos-bucket";
-    //         String objectName = file.getOriginalFilename();
-
-    //         // Check if the bucket exists, if not Create it
-    //         if (!minioClient.bucketExists(BucketExistsArgs.builder().bucket(bucketName).build())) {
-    //             minioClient.makeBucket(MakeBucketArgs.builder().bucket(bucketName).build());
-    //         }
-
-    //         // Upload the video to MinIO using the internal URL
-    //         InputStream inputStream = file.getInputStream();
-    //         String videoUrl = minioService.uploadVideo(bucketName, objectName, inputStream, file.getSize(), file.getContentType());
-    //         System.out.println("Generated Presigned URL (Internal): " + videoUrl);
-
-    //         // Generate the external URL for accessing the video
-    //         String externalVideoUrl = videoUrl.replace(minioInternalUrl, minioExternalUrl);
-    //         System.out.println("Generated External Video URL: " + externalVideoUrl);
-
-    //         // Create and return the FHIR resource or any other logic here
-    //         return ResponseEntity.ok(externalVideoUrl);
-    //     } catch (Exception e) {
-    //         e.printStackTrace();
-    //         return ResponseEntity.status(500).body("Error occurred: " + e.getMessage());
-    //     }
-    // }
-
-    //========================================================================
 
     @PostMapping("/upload")
     public ResponseEntity<String> uploadVideo(
@@ -180,14 +137,12 @@ public class VideoUploadController {
                 .contentType(MediaType.APPLICATION_OCTET_STREAM)
                 .body(resource);
 
-    } catch (Exception e) {
-        e.printStackTrace();
-        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                .body(null);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(null);
+        }
     }
-}
-
-
 
     @GetMapping("/download/{mediaId}")
     public void getMedia(@PathVariable String mediaId, HttpServletResponse response) {
@@ -199,9 +154,6 @@ public class VideoUploadController {
             // Retrieve the Media resource
             Media media = client.read().resource(Media.class).withId(mediaId).execute();
             System.out.println("this is the media = " + media.toString());
-
-
-            
 
             // Fetch the video from MinIO
             try (InputStream stream = minioClient.getObject(
@@ -220,8 +172,4 @@ public class VideoUploadController {
             throw new RuntimeException("Error streaming media", e);
         }
     }
-
-
-
-
 }

@@ -8,6 +8,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.io.InputStream;
+import java.util.Arrays;
 import java.util.Base64;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -51,4 +52,10 @@ public class FindingService {
             return finding;
         }).collect(Collectors.toList());
     }
+
+    // In FindingService.java
+    public List<String> getPredefinedComments() {
+        return Arrays.asList("Fresh Blood", "Vascular Lesion", "Ulcerative Lesion", "Polyp", "Other");
+    }
+
 }
