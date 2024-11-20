@@ -57,5 +57,4 @@ public class FindingService {
     public List<String> getPredefinedComments() {
         return Arrays.asList("Fresh Blood", "Vascular Lesion", "Ulcerative Lesion", "Polyp", "Other");
     }
-
 }

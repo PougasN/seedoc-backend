@@ -43,7 +43,7 @@ public class EncounterService {
 
             // Set the role of the participant (e.g., doctor or nurse)
             CodeableConcept roleConcept = new CodeableConcept();
-            roleConcept.setText(role.equalsIgnoreCase("doctor") ? "Doctor" : "Nurse");
+            roleConcept.setText(role.equalsIgnoreCase("doctor") ? "Doctor" : "PreReader");
             participant.addType(roleConcept);
 
             // Add the participant to the encounter

@@ -16,7 +16,6 @@ import org.springframework.web.bind.annotation.*;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.Map;
 
 @RestController
 @RequestMapping("/api/careTeams")
@@ -78,18 +77,6 @@ public class CareTeamController {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body("CareTeam not found with ID: " + careTeamId);
         }
     }
-
-//    @PostMapping("/{careTeamId}/assign-encounter")
-//    public ResponseEntity<String> assignEncounterToCareTeam(@PathVariable String careTeamId, @RequestBody Map<String, String> body) {
-//        String encounterId = body.get("encounterId");
-//
-//        try {
-//            careTeamService.assignEncounterToCareTeam(careTeamId, encounterId);
-//            return ResponseEntity.ok("Encounter assigned successfully to CareTeam.");
-//        } catch (Exception e) {
-//            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error assigning encounter to CareTeam.");
-//        }
-//    }
 
     @DeleteMapping("/care-team/{id}")
     public ResponseEntity<Void> deleteCareTeamById(@PathVariable String id) {

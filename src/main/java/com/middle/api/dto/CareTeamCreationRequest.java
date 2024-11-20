@@ -6,15 +6,13 @@ import java.util.Map;
 public class CareTeamCreationRequest {
     private String patientId;
     private List<String> practitionerIds;
-    private Map<String, String> roles; // A map of practitionerId to role
+    private Map<String, String> roles;
 
     public CareTeamCreationRequest(String patientId, List<String> practitionerIds, Map<String, String> roles) {
         this.patientId = patientId;
         this.practitionerIds = practitionerIds;
         this.roles = roles;
     }
-
-    // Getters and Setters
 
     public String getRoleForPractitioner(String practitionerId) {
         return roles.getOrDefault(practitionerId, "general"); // Default to "general" if no specific role

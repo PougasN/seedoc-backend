@@ -14,7 +14,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -30,22 +29,41 @@ public class EncounterController {
     @Autowired
     private EncounterService encounterService;
 
-    @PutMapping("/{encounterId}/nursePreRead")
-    public ResponseEntity<String> addNursePreReadStatus(@PathVariable String encounterId) {
+    @DeleteMapping("encounter/{id}/removeParticipants")
+    public ResponseEntity<Void> removeParticipants(@PathVariable String id) {
+        try {
+            // Fetch the encounter from the FHIR server
+            Encounter encounter = fhirClient.read().resource(Encounter.class).withId(id).execute();
+
+            // Remove all participants
+            encounter.getParticipant().clear();
+
+            // Update the encounter on the FHIR server
+            fhirClient.update().resource(encounter).execute();
+
+            return ResponseEntity.noContent().build(); // Return 204 No Content on success
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.status(500).build(); // Return 500 Internal Server Error on failure
+        }
+    }
+
+    @PutMapping("/{encounterId}/PreRead")
+    public ResponseEntity<String> addPreReadStatus(@PathVariable String encounterId) {
         try {
             // Fetch the Encounter resource from the FHIR server
             Encounter encounter = fhirClient.read().resource(Encounter.class).withId(encounterId).execute();
 
-            // Add or update the custom extension for nurse pre-reading
-            Extension nursePreReadExtension = new Extension("http://example.com/fhir/StructureDefinition/nursePreReadStatus", new BooleanType(true));
-            encounter.addExtension(nursePreReadExtension);
+            // Add or update the custom extension for pre-reading
+            Extension PreReadExtension = new Extension("http://example.com/fhir/StructureDefinition/PreReadStatus", new BooleanType(true));
+            encounter.addExtension(PreReadExtension);
 
             // Update the Encounter resource on the FHIR server
             fhirClient.update().resource(encounter).execute();
 
-            return ResponseEntity.ok("Nurse pre-read status added to Encounter.");
+            return ResponseEntity.ok("Pre-read status added to Encounter.");
         } catch (Exception e) {
-            return ResponseEntity.status(500).body("Failed to add nurse pre-read status: " + e.getMessage());
+            return ResponseEntity.status(500).body("Failed to add pre-read status: " + e.getMessage());
         }
     }
 
@@ -58,7 +76,6 @@ public class EncounterController {
         String encounterString = fhirContext.newJsonParser().setPrettyPrint(true).encodeResourceToString(createdEncounter);
         return ResponseEntity.status(HttpStatus.CREATED).body(encounterString);
     }
-
 
     @PostMapping("/encounter/{encounterId}/addParticipant")
     public ResponseEntity<?> addParticipantToEncounter(
@@ -73,7 +90,6 @@ public class EncounterController {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Failed to add participant");
         }
     }
-
 
     @PostMapping(value = "/encounterWithReport", consumes = "application/fhir+json")
     public ResponseEntity<String> createEncounterWithDiagnosticReport(@RequestBody Encounter encounter) {
@@ -128,10 +144,50 @@ public class EncounterController {
     @DeleteMapping("/encounter/{id}")
     public ResponseEntity<String> deleteEncounter(@PathVariable String id) {
         try {
-            fhirClient.delete().resourceById(new IdType("Encounter", id)).execute();
-            return ResponseEntity.status(HttpStatus.NO_CONTENT).body("Encounter resource deleted successfully");
+            // Search and delete DiagnosticReports referencing the Encounter
+            Bundle diagnosticReports = fhirClient.search()
+                    .forResource(DiagnosticReport.class)
+                    .where(DiagnosticReport.ENCOUNTER.hasId("Encounter/" + id))
+                    .returnBundle(Bundle.class)
+                    .execute();
+
+            if (diagnosticReports.getTotal() > 0) {
+                for (Bundle.BundleEntryComponent entry : diagnosticReports.getEntry()) {
+                    DiagnosticReport diagnosticReport = (DiagnosticReport) entry.getResource();
+                    fhirClient.delete()
+                            .resourceById(new IdType("DiagnosticReport", diagnosticReport.getIdElement().getIdPart()))
+                            .execute();
+                    System.out.println("Deleted DiagnosticReport with ID: " + diagnosticReport.getIdElement().getIdPart());
+                }
+            }
+
+            // Search and delete Media referencing the Encounter
+            Bundle mediaResources = fhirClient.search()
+                    .forResource(Media.class)
+                    .where(Media.ENCOUNTER.hasId("Encounter/" + id))
+                    .returnBundle(Bundle.class)
+                    .execute();
+
+            if (mediaResources.getTotal() > 0) {
+                for (Bundle.BundleEntryComponent entry : mediaResources.getEntry()) {
+                    Media media = (Media) entry.getResource();
+                    fhirClient.delete()
+                            .resourceById(new IdType("Media", media.getIdElement().getIdPart()))
+                            .execute();
+                    System.out.println("Deleted Media with ID: " + media.getIdElement().getIdPart());
+                }
+            }
+
+            // Finally, delete the Encounter itself
+            fhirClient.delete()
+                    .resourceById(new IdType("Encounter", id))
+                    .execute();
+
+            return ResponseEntity.status(HttpStatus.NO_CONTENT)
+                    .body("Encounter and all related resources deleted successfully.");
         } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error deleting Encounter resource: " + e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("Error deleting Encounter and related resources: " + e.getMessage());
         }
     }
 
@@ -146,7 +202,6 @@ public class EncounterController {
         });
         return ResponseEntity.status(HttpStatus.NO_CONTENT).body("All encounters deleted successfully");
     }
-
 
     // GET all encounters for a patient
     @GetMapping(value = "/patient/{patientId}/encounters", produces = "application/fhir+json")
@@ -183,7 +238,6 @@ public class EncounterController {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error finalizing encounter");
         }
     }
-
 
     @PutMapping("/encounter/{encounterId}/status")
     public ResponseEntity<?> updateEncounterStatus(
@@ -290,5 +344,4 @@ public class EncounterController {
         String encountersString = fhirContext.newJsonParser().setPrettyPrint(true).encodeResourceToString(bundle);
         return ResponseEntity.ok(encountersString);
     }
-
 }

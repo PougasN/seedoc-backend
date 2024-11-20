@@ -3,13 +3,7 @@ package com.middle.api.controller;
 import ca.uhn.fhir.context.FhirContext;
 import ca.uhn.fhir.rest.api.MethodOutcome;
 import ca.uhn.fhir.rest.client.api.IGenericClient;
-import io.minio.GetObjectArgs;
 import io.minio.MinioClient;
-import io.minio.errors.MinioException;
-import jakarta.servlet.http.HttpServletResponse;
-
-import java.io.InputStream;
-
 import org.hl7.fhir.instance.model.api.IIdType;
 import org.hl7.fhir.r4.model.Bundle;
 import org.hl7.fhir.r4.model.IdType;
@@ -48,25 +42,6 @@ public class MediaController {
         String mediaString = fhirContext.newJsonParser().setPrettyPrint(true).encodeResourceToString(createdMedia);
         return ResponseEntity.status(HttpStatus.CREATED).body(mediaString);
     }
-
-    // @GetMapping("/media/{mediaId}")
-    // public void getMedia(@PathVariable String mediaId, HttpServletResponse response) {
-    //     try (
-    //         InputStream stream = minioClient.getObject(
-    //             GetObjectArgs.builder()
-    //                     .bucket("videos-bucket")
-    //                     .object("path/to/your/video/" + mediaId) // Adjust the path as needed
-    //                     .build())) {
-
-    //         response.setContentType("video/mp4");
-    //         response.setHeader("Content-Disposition", "inline; filename=\"" + mediaId + "\"");
-    //         stream.transferTo(response.getOutputStream());
-    //     } catch (MinioException e) {
-    //         throw new RuntimeException("Error fetching media", e);
-    //     } catch (Exception e) {
-    //         throw new RuntimeException("Error streaming media", e);
-    //     }
-    // }
 
     // GET Media by ID
     @GetMapping("/media/{id}")

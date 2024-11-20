@@ -26,13 +26,11 @@ public class UserController {
     @Autowired
     private UserRepository userRepository;
 
-
     @GetMapping("/{userId}")
     public ResponseEntity<Object> getUserById(@PathVariable Long userId) {
         Optional<User> user = userService.getUserById(userId);
         return user.<ResponseEntity<Object>>map(ResponseEntity::ok).orElseGet(() -> ResponseEntity.status(404).body("User not found"));
     }
-
 
     @GetMapping("/admins")
     public ResponseEntity<List<User>> getAllAdmins() {
@@ -50,6 +48,12 @@ public class UserController {
     public ResponseEntity<List<User>> getAllNurses() {
         List<User> nurses = userService.getUsersByRole("ROLE_NURSE");
         return ResponseEntity.ok(nurses);
+    }
+
+    @GetMapping("/prereaders")
+    public ResponseEntity<List<User>> getAllPreReaders() {
+        List<User> prereaders = userService.getUsersByRole("ROLE_PREREADER");
+        return ResponseEntity.ok(prereaders);
     }
 
     @DeleteMapping("/users/{id}")
@@ -90,6 +94,4 @@ public class UserController {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("An error occurred while deleting the user.");
         }
     }
-
-
 }

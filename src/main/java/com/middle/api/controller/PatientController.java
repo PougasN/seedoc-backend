@@ -4,14 +4,13 @@ import ca.uhn.fhir.context.FhirContext;
 import ca.uhn.fhir.rest.api.MethodOutcome;
 import ca.uhn.fhir.rest.client.api.IGenericClient;
 import com.middle.api.service.FhirClientService;
-import org.hl7.fhir.r4.model.Bundle;
-import org.hl7.fhir.r4.model.IdType;
-import org.hl7.fhir.r4.model.Patient;
+import org.hl7.fhir.r4.model.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.Date;
 import java.util.List;
 
 @RestController
@@ -52,10 +51,22 @@ public class PatientController {
     // POST a new Patient
     @PostMapping(value = "/patient", consumes = "application/fhir+json")
     public ResponseEntity<String> createPatient(@RequestBody Patient patient) {
+        // Add the "created" extension to the patient
+        Extension createdExtension = new Extension("http://example.org/fhir/StructureDefinition/created");
+        createdExtension.setValue(new DateTimeType(new Date())); // Current timestamp
+        patient.getMeta().addExtension(createdExtension);
+
+        // Save the patient to the FHIR server
         MethodOutcome outcome = fhirClient.create().resource(patient).execute();
         IdType id = (IdType) outcome.getId();
+
+        // Fetch the newly created patient (to ensure extensions and IDs are populated)
         Patient createdPatient = fhirClient.read().resource(Patient.class).withId(id.getIdPart()).execute();
+
+        // Convert the patient resource to a JSON string
         String patientString = fhirContext.newJsonParser().setPrettyPrint(true).encodeResourceToString(createdPatient);
+
+        // Return the created patient resource with a 201 Created status
         return ResponseEntity.status(HttpStatus.CREATED).body(patientString);
     }
 

@@ -2,7 +2,7 @@ package com.middle.api.dto;
 
 public class ParticipantRequest {
     private String practitionerId;
-    private String role; // Either "doctor" or "nurse"
+    private String role;
 
     public String getPractitionerId() {
         return practitionerId;
@@ -19,7 +19,5 @@ public class ParticipantRequest {
     public void setRole(String role) {
         this.role = role;
     }
-
-    // Getters and Setters
 }
 

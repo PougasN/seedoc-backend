@@ -16,7 +16,6 @@ public class Finding {
 
     private String comment;
 
-    // Getters and setters
     public Long getId() {
         return id;
     }

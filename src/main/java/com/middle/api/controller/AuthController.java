@@ -32,16 +32,6 @@ public class AuthController {
         this.authenticationManager = authenticationManager;
     }
 
-//    @PostMapping("/register")
-//    public ResponseEntity<?> register(@RequestBody RegisterRequest request) {
-//        if (userService.existsByUsername(request.getUsername())) {
-//            return ResponseEntity.badRequest().body("Username already exists");
-//        }
-//
-//        userService.createUser(request);
-//        return ResponseEntity.ok("User registered successfully");
-//    }
-
     @PostMapping("/register")
     public ResponseEntity<?> register(@RequestBody RegisterRequest request) {
         if (userService.existsByUsername(request.getUsername())) {
@@ -56,7 +46,6 @@ public class AuthController {
         }
     }
 
-
     @PostMapping("/api/users")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<?> createUser(@RequestBody RegisterRequest request) {
@@ -66,24 +55,6 @@ public class AuthController {
         userService.createUser(request);
         return ResponseEntity.ok("User created successfully");
     }
-
-//    @PostMapping("/login")
-//    public ResponseEntity<?> login(@RequestBody LoginRequest request) {
-//        try {
-//            Authentication authentication = authenticationManager.authenticate(
-//                    new UsernamePasswordAuthenticationToken(request.getUsername(), request.getPassword())
-//            );
-//
-//            SecurityContextHolder.getContext().setAuthentication(authentication);
-//            UserDetails userDetails = (UserDetails) authentication.getPrincipal();
-//            String role = userDetails.getAuthorities().iterator().next().getAuthority();
-//
-//            return ResponseEntity.ok(Map.of("message", "Login successful", "role", role));
-//        } catch (BadCredentialsException e) {
-//            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid credentials");
-//        }
-//    }
-
 
     @PostMapping("/login")
     public ResponseEntity<?> login(@RequestBody LoginRequest request) {
@@ -116,7 +87,6 @@ public class AuthController {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid credentials");
         }
     }
-
 
     @GetMapping("/test")
     public ResponseEntity<?> test(Authentication authentication) {

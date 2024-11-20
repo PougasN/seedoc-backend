@@ -1,6 +1,7 @@
 package com.middle.api.controller;
 
 import com.middle.api.entity.Finding;
+import com.middle.api.repository.FindingRepository;
 import com.middle.api.service.FindingService;
 import com.middle.api.service.MinioService;
 import io.minio.*;
@@ -28,6 +29,9 @@ public class FindingController {
     private MinioService minioService;
     @Autowired
     private MinioClient minioClient;
+
+    @Autowired
+    private FindingRepository findingRepository;
 
     @PostMapping("/findings")
     public Finding addFinding(
@@ -98,7 +102,6 @@ public class FindingController {
         return ResponseEntity.ok(findingsWithFrames);
     }
 
-
     @PostMapping("/uploadFrame/{encounterId}")
     public ResponseEntity<String> uploadFrame(
             @PathVariable String encounterId,
@@ -141,6 +144,7 @@ public class FindingController {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error uploading frame: " + e.getMessage());
         }
     }
+
     @GetMapping("/findings/get/{mediaId}")
     public List<Finding> getFindings(@PathVariable Long mediaId) {
         return findingService.getFindingsByMediaId(mediaId);
@@ -181,4 +185,24 @@ public class FindingController {
         return ResponseEntity.ok(findingService.getPredefinedComments());
     }
 
+    @PutMapping("/findings/{id}")
+    public ResponseEntity<?> updateFinding(@PathVariable Long id, @RequestBody Map<String, String> request) {
+        try {
+            Optional<Finding> optionalFinding = findingRepository.findById(id);
+            if (optionalFinding.isPresent()) {
+                Finding finding = optionalFinding.get();
+                if (request.containsKey("comment")) {
+                    finding.setComment(request.get("comment"));
+                    findingRepository.save(finding);
+                    return ResponseEntity.ok(finding);
+                } else {
+                    return ResponseEntity.badRequest().body("Missing comment field");
+                }
+            } else {
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Finding not found");
+            }
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error updating finding");
+        }
+    }
 }

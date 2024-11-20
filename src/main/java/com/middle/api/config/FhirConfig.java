@@ -24,7 +24,8 @@ public class FhirConfig implements WebMvcConfigurer {
 
     private final String[] ALLOWED_ORIGINS = {
         reactUrl,
-        "http://localhost:3000"
+        "http://localhost:3000",
+        "http://116.203.185.109:3000"
     };
 
     @Bean
